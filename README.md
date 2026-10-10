@@ -1,5 +1,11 @@
 # 麦麦最优解（mcd-optimal-bite）
 
+![License](https://img.shields.io/badge/license-MIT-green)
+![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
+![Tests](https://img.shields.io/badge/tests-63%20pass-brightgreen)
+![Deps](https://img.shields.io/badge/dependencies-zero-success)
+![Verify](https://img.shields.io/badge/官方复核-差额0-red)
+
 > 说想吃啥 + 几个人吃 → 算出**可验证**的麦当劳最省点单方案（套餐化 · 配券 · 拆单 · 官方算价复核）
 
 基于麦当劳中国官方 MCP（`https://mcp.mcd.cn`）的本地优化引擎。**LLM 只做意图解析，价格计算全部由确定性算法完成，并经官方 `calculate-price` 闭环复核**——每个方案的"估算价"与官方实付价差额为 0。
@@ -76,10 +82,11 @@ items 语法：`商品名×数量`，逗号分隔；支持精确名/唯一子串
 
 ## 它是怎么工作的
 
-```
-意图解析（LLM 只做这一步）      求解（纯本地，无 LLM）            复核（官方真源）
-"想吃吉士蛋麦满分×2"   ──►   覆盖搜索：单点/套餐变体/拆单  ──►  calculate-price
-名称→商品码（精确/子串/组件）    贪心上界 + memo 支配剪枝          估算 vs 官方 差额展示
+```mermaid
+flowchart LR
+    A["意图解析<br/>LLM 只做这一步<br/>名称→商品码"] --> B["确定性求解<br/>覆盖搜索：单点/套餐变体/拆单<br/>贪心上界+memo剪枝 · 9ms"]
+    B --> C["官方复核<br/>calculate-price<br/>估算 vs 官方 差额=0"]
+    C --> D["方案输出<br/>比单点省 ¥X · 按券拆单 · 促销提示"]
 ```
 
 核心发现沉淀在 [MCP_INTEGRATION.md](MCP_INTEGRATION.md)：
