@@ -72,7 +72,9 @@ def parse_meals(meals_data: Any) -> Dict[str, Product]:
     products: Dict[str, Product] = {}
     for code, info in (data or {}).items():
         promo_type = str(info.get("discountType") or "")
-        needs_card = promo_type == "随单购早餐卡优惠"
+        # 规律（2026-10-10 实测）：所有「随单购X卡优惠」（早餐卡/麦金卡/…）的
+        # currentPrice 都是买卡后价，官方裸算按 originalPrice —— 一律按裸价口径
+        needs_card = "随单购" in promo_type and "卡" in promo_type
         cur = to_decimal(info.get("currentPrice"))
         orig = to_decimal(info.get("originalPrice"))
         products[str(code)] = Product(

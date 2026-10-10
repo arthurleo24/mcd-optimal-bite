@@ -68,9 +68,13 @@ def _find_code(catalog: Catalog, name: str):
     if len(exact) > 1:
         return exact
     comp_exact = sorted(c for c, n in catalog.component_names.items() if n == name)
-    if len(comp_exact) == 1:
-        return comp_exact[0]
-    if len(comp_exact) > 1:
+    if comp_exact:
+        # 同名组件多个码时，优先可单点的那个（在 products 表中）
+        in_products = [c for c in comp_exact if c in catalog.products]
+        if len(in_products) == 1:
+            return in_products[0]
+        if len(comp_exact) == 1:
+            return comp_exact[0]
         return comp_exact
     subs = sorted(c for c, p in catalog.products.items() if name in p.name)
     if len(subs) == 1:
@@ -236,7 +240,8 @@ def cmd_order(args) -> int:
     for name, cands in ambiguous:
         print(f"❌ 「{name}」有多个候选，请用全名：")
         for c in cands:
-            print(f"   - {catalog.products[c].name}")
+            print(f"   - {_name(catalog, c)}"
+                  + ("" if c in catalog.products else "（仅随套餐提供）"))
         return 1
     if demand.is_empty():
         print("❌ 需求为空")

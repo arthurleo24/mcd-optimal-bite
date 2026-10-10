@@ -8,7 +8,7 @@
   "diff": "0",
   "actions": 1,
   "saved": null,
-  "ms": 979,
+  "ms": 403,
   "detail": ""
  },
  {
@@ -20,7 +20,7 @@
   "diff": "0.0",
   "actions": 2,
   "saved": null,
-  "ms": 127,
+  "ms": 165,
   "detail": ""
  },
  {
@@ -32,7 +32,7 @@
   "diff": "0.0",
   "actions": 8,
   "saved": "16.8",
-  "ms": 134,
+  "ms": 124,
   "detail": ""
  },
  {
@@ -44,7 +44,7 @@
   "diff": "-14",
   "actions": 1,
   "saved": null,
-  "ms": 115,
+  "ms": 128,
   "detail": "官方更便宜（组件码可直购，目录未含组件单价——v1 已知限制），以官方 ¥14 为准"
  },
  {
@@ -56,7 +56,7 @@
   "diff": "0.0",
   "actions": 10,
   "saved": null,
-  "ms": 134,
+  "ms": 132,
   "detail": ""
  },
  {
@@ -116,7 +116,7 @@
   "diff": null,
   "actions": 0,
   "saved": null,
-  "ms": 118,
-  "detail": "118ms（预算 5s）"
+  "ms": 137,
+  "detail": "137ms（预算 5s）"
  }
 ]
