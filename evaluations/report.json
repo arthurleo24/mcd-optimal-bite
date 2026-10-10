@@ -1,0 +1,122 @@
+[
+ {
+  "case": "E1",
+  "title": "单品：巨无霸×1",
+  "status": "PASS",
+  "est": "26",
+  "official": "26",
+  "diff": "0",
+  "actions": 1,
+  "saved": null,
+  "ms": 979,
+  "detail": ""
+ },
+ {
+  "case": "E2",
+  "title": "双品×2：巨无霸×2 培根蔬萃双层牛堡×2",
+  "status": "PASS",
+  "est": "101.0",
+  "official": "101",
+  "diff": "0.0",
+  "actions": 2,
+  "saved": null,
+  "ms": 127,
+  "detail": ""
+ },
+ {
+  "case": "E3",
+  "title": "4人 8 项",
+  "status": "PASS",
+  "est": "170.7",
+  "official": "170.7",
+  "diff": "0.0",
+  "actions": 8,
+  "saved": "16.8",
+  "ms": 134,
+  "detail": ""
+ },
+ {
+  "case": "E4",
+  "title": "仅套餐组件：汉堡包×2",
+  "status": "WARN",
+  "est": "28",
+  "official": "14",
+  "diff": "-14",
+  "actions": 1,
+  "saved": null,
+  "ms": 115,
+  "detail": "官方更便宜（组件码可直购，目录未含组件单价——v1 已知限制），以官方 ¥14 为准"
+ },
+ {
+  "case": "E5",
+  "title": "大需求 10 项",
+  "status": "PASS",
+  "est": "209.3",
+  "official": "209.3",
+  "diff": "0.0",
+  "actions": 10,
+  "saved": null,
+  "ms": 134,
+  "detail": ""
+ },
+ {
+  "case": "E6",
+  "title": "不可得降级：不存在的商品",
+  "status": "PASS",
+  "est": null,
+  "official": null,
+  "diff": null,
+  "actions": 0,
+  "saved": null,
+  "ms": 0,
+  "detail": "unknown=['麦辣鸡腿堡不存在的菜']（CLI 报错降级）"
+ },
+ {
+  "case": "E7a",
+  "title": "解析：歧义词「套餐」报多候选",
+  "status": "PASS",
+  "est": null,
+  "official": null,
+  "diff": null,
+  "actions": 0,
+  "saved": null,
+  "ms": 0,
+  "detail": "8 个候选"
+ },
+ {
+  "case": "E7b",
+  "title": "解析：未知词「星球杯」报未找到",
+  "status": "PASS",
+  "est": null,
+  "official": null,
+  "diff": null,
+  "actions": 0,
+  "saved": null,
+  "ms": 0,
+  "detail": ""
+ },
+ {
+  "case": "E8",
+  "title": "按券拆单：3张培根蔬萃双层牛堡券 + 培根蔬萃双层牛堡×3（单action多份展开）",
+  "status": "PASS",
+  "est": null,
+  "official": null,
+  "diff": null,
+  "actions": 0,
+  "saved": null,
+  "ms": 0,
+  "detail": "suborders=3, est_total=73.50 vs 73.5"
+ },
+ {
+  "case": "E9",
+  "title": "端到端性能：解析+求解+复核",
+  "status": "PASS",
+  "est": null,
+  "official": null,
+  "diff": null,
+  "actions": 0,
+  "saved": null,
+  "ms": 118,
+  "detail": "118ms（预算 5s）"
+ }
+]

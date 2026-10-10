@@ -1,0 +1,19 @@
+[project]
+name = "mcd-optimal-bite"
+version = "0.1.0"
+description = "麦麦最优解 — 说想吃啥，算出最省的官方点单方案（套餐化/配券/分餐，官方价格复核）"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+mcd-optimal-bite = "mcd_optimal_bite.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

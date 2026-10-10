@@ -1,0 +1,23 @@
+# secrets
+.env
+*.token
+mcp-config.local.json
+mcp-config.json
+!mcp-config.example.json
+
+# python
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+.venv/
+
+# private probes (contain token)
+tmp/
+sandbox/
+
+# os
+.DS_Store
+Thumbs.db
