@@ -22,6 +22,7 @@ from decimal import Decimal
 from pathlib import Path
 from typing import List, Optional, Tuple
 
+from .campaigns import active_campaigns, claimable_coupons, parse_available_coupons, summarize_coupons
 from .catalog import CatalogBuilder, load_catalog, save_catalog
 from .mcp_client import McpClient, McpError
 from .models import Catalog, Demand, Solution
@@ -158,7 +159,8 @@ def _cover_str(catalog: Catalog, act) -> str:
 
 def render_order(catalog: Catalog, solution: Solution, split_lines: List[str],
                  hint_lines: List[str], people: int, demand_str: str,
-                 catalog_src: str, official_line: Optional[str]) -> str:
+                 catalog_src: str, official_line: Optional[str],
+                 campaign_lines: Optional[List[str]] = None) -> str:
     out: List[str] = []
     out.append("═" * 46)
     out.append(" 麦麦最优解")
@@ -183,6 +185,10 @@ def render_order(catalog: Catalog, solution: Solution, split_lines: List[str],
         out.append("")
         out.append("── 按券拆单建议 ──")
         out.extend(split_lines)
+    if campaign_lines:
+        out.append("")
+        out.append("── 活动提醒 ──")
+        out.extend(campaign_lines)
     if hint_lines:
         out.append("")
         out.append("── 提示 ──")
@@ -228,6 +234,31 @@ def cmd_stores(args) -> int:
     return 0
 
 
+def cmd_coupons(args) -> int:
+    """麦麦省券位概览：可领 / 已领。--claim 显式领取全部可领券。"""
+    with McpClient() as client:
+        text = client.content_text(client.call_tool("available-coupons", {}))
+        summary = summarize_coupons(text)
+        print(f"麦麦省券位：共 {summary['total']} 张 | 待领 {summary['claimable']} | 已领 {summary['claimed']}")
+        items = parse_available_coupons(text)
+        for i, c in enumerate(items[:15], 1):
+            mark = "✅已领" if not c.claimable else "👉待领"
+            print(f"  {i}. [{mark}] {c.title}")
+        if summary["claimable"]:
+            if args.claim:
+                print("\n--claim：调用 auto-bind-coupons 领取全部可领券…")
+                try:
+                    resp = client.call_tool("auto-bind-coupons", {})
+                    out = client.content_text(resp)
+                    print(out[:600] or "（服务端无文本返回，请到麦当劳 App 确认券位）")
+                except McpError as e:
+                    print(f"⚠️ 领取失败：{e}（可到麦当劳 App 手动领取）")
+                    return 1
+            else:
+                print(f"\n💡 有 {summary['claimable']} 张券待领取：加 --claim 一键领取，或到麦当劳 App 领取")
+    return 0
+
+
 def cmd_order(args) -> int:
     cache = Path(args.cache) if args.cache else CACHE_DEFAULT
     catalog, src = _load_or_build(cache, args.refresh, args.store)
@@ -260,34 +291,48 @@ def cmd_order(args) -> int:
     official_line = None
     degrade_notes: List[str] = []
     split_lines: List[str] = []
+    campaign_lines: List[str] = []
     plan = plan_split(catalog, sol)
 
     if not args.no_verify:
         try:
             with McpClient() as client:
                 report = verify_solution(client, catalog, sol)
-            official_line = f"官方算价 ¥{sol.official_price}" + (
-                f"（优惠 ¥{sol.official_discount}）" if sol.official_discount else "")
-            if abs(report.diff) >= Decimal("0.01"):
-                official_line += f" ⚠️与估算差 ¥{report.diff:+}"
+                official_line = f"官方算价 ¥{sol.official_price}" + (
+                    f"（优惠 ¥{sol.official_discount}）" if sol.official_discount else "")
+                if abs(report.diff) >= Decimal("0.01"):
+                    official_line += f" ⚠️与估算差 ¥{report.diff:+}"
 
-            if plan.is_split:
-                reports = verify_split(client, catalog, plan)
-                split_lines.append(plan.reason)
-                for sub, rep in zip(plan.suborders, reports):
-                    line = (f"  子单{sub.index}（{sub.coupon_label}）："
-                            f"估算 ¥{sub.est_total} -> 官方 ¥{rep.official_total}")
-                    if rep.official_discount:
-                        line += f"（券抵 ¥{rep.official_discount}）"
-                    split_lines.append(line)
-                split_total = sum(r.official_total for r in reports)
-                compare = f"  拆单合计官方 ¥{split_total}"
-                if sol.official_price is not None:
-                    delta = sol.official_price - split_total
-                    compare += f" vs 整单官方 ¥{sol.official_price}"
-                    compare += ("  ✅拆单更省 ¥%s" % delta) if delta > 0 else \
-                               ("  ⚠️拆单不省（贵 ¥%s），建议整单" % -delta) if delta < 0 else "  持平"
-                split_lines.append(compare)
+                # 活动提醒（非核心，失败静默）
+                if not getattr(args, "no_campaigns", False):
+                    try:
+                        cal_text = client.content_text(
+                            client.call_tool("campaign-calendar", {}))
+                        acts = active_campaigns(cal_text)
+                        if acts:
+                            campaign_lines.append("── 活动提醒 ──")
+                            campaign_lines += [
+                                f"  [{c.date}] {c.title}" for c in acts]
+                    except Exception:
+                        pass
+
+                if plan.is_split:
+                    reports = verify_split(client, catalog, plan)
+                    split_lines.append(plan.reason)
+                    for sub, rep in zip(plan.suborders, reports):
+                        line = (f"  子单{sub.index}（{sub.coupon_label}）："
+                                f"估算 ¥{sub.est_total} -> 官方 ¥{rep.official_total}")
+                        if rep.official_discount:
+                            line += f"（券抵 ¥{rep.official_discount}）"
+                        split_lines.append(line)
+                    split_total = sum(r.official_total for r in reports)
+                    compare = f"  拆单合计官方 ¥{split_total}"
+                    if sol.official_price is not None:
+                        delta = sol.official_price - split_total
+                        compare += f" vs 整单官方 ¥{sol.official_price}"
+                        compare += ("  ✅拆单更省 ¥%s" % delta) if delta > 0 else \
+                                   ("  ⚠️拆单不省（贵 ¥%s），建议整单" % -delta) if delta < 0 else "  持平"
+                    split_lines.append(compare)
         except McpError as e:
             official_line = "官方算价失败（以下为估算价）"
             degrade_notes.append(f"⚠️ 官方算价失败：{e}")
@@ -309,7 +354,8 @@ def cmd_order(args) -> int:
     demand_str = "、".join(
         f"{_name(catalog, c)}×{q}" for c, q in sorted(demand.items.items()))
     print(render_order(catalog, sol, split_lines, hints,
-                       args.people, demand_str, src, official_line))
+                       args.people, demand_str, src, official_line,
+                       campaign_lines=campaign_lines))
     return 0
 
 
@@ -324,6 +370,11 @@ def main(argv: Optional[List[str]] = None) -> int:
     p_stores.add_argument("--keyword", default="", help="门店名关键字，可选")
     p_stores.set_defaults(func=cmd_stores)
 
+    p_coupons = sub.add_parser("coupons", help="麦麦省券位概览（可领/已领）")
+    p_coupons.add_argument("--claim", action="store_true",
+                           help="一键领取全部待领券（涉账户变更，显式确认才执行）")
+    p_coupons.set_defaults(func=cmd_coupons)
+
     p_order = sub.add_parser("order", help="算最省点单方案")
     p_order.add_argument("--store", required=True, help="门店编码（stores 子命令查询）")
     p_order.add_argument("--items", required=True,
@@ -332,6 +383,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     p_order.add_argument("--cache", default=None, help="目录缓存路径")
     p_order.add_argument("--refresh", action="store_true", help="强制重拉菜单目录")
     p_order.add_argument("--no-verify", action="store_true", help="跳过官方算价复核")
+    p_order.add_argument("--no-campaigns", action="store_true", help="跳过活动日历提醒")
     p_order.set_defaults(func=cmd_order)
 
     args = parser.parse_args(argv)
