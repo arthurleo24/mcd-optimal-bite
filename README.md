@@ -9,8 +9,11 @@
 ![Tests](https://img.shields.io/badge/tests-63%20pass-brightgreen)
 ![Deps](https://img.shields.io/badge/dependencies-zero-success)
 ![Verify](https://img.shields.io/badge/官方复核-差额0-red)
+![Contest](https://img.shields.io/badge/麦当劳程序员节-参赛作品-DA291C)
 
 > 说想吃啥 + 几个人吃 → 算出**可验证**的麦当劳最省点单方案（套餐化 · 配券 · 拆单 · 官方算价复核）。
+
+> 💡 **如果它帮你省到了钱，点个 Star ⭐ 让更多人看到** —— 这是对开源作者最好的回报（项目正在参加麦当劳程序员节大赛，星数决定排名）。
 
 <p align="center">
   <a href="#30-秒上手">快速开始</a> ·
